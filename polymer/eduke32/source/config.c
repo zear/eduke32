@@ -184,8 +184,8 @@ void CONFIG_SetDefaults(void)
     int32_t i;
 
     ud.config.scripthandle = -1;
-    ud.config.ScreenWidth = 1024;
-    ud.config.ScreenHeight = 768;
+    ud.config.ScreenWidth = 320;
+    ud.config.ScreenHeight = 240;
     ud.config.ScreenMode = 0;
 #if defined(POLYMOST) && defined(USE_OPENGL)
     ud.config.ScreenBPP = 32;
@@ -250,8 +250,8 @@ void CONFIG_SetDefaults(void)
     ud.weaponsway = 1;
     ud.weaponswitch = 3;	// new+empty
     ud.angleinterpolation = 0;
-    ud.config.UseJoystick = 0;
-    ud.config.UseMouse = 1;
+    ud.config.UseJoystick = 1;
+    ud.config.UseMouse = 0;
     ud.config.VoiceToggle = 5; // bitfield, 1 = local, 2 = dummy, 4 = other players in DM
     ud.display_bonus_screen = 1;
     ud.show_level_text = 1;
@@ -317,9 +317,24 @@ void CONFIG_SetDefaults(void)
     memset(ud.config.JoystickDigitalFunctions, -1, sizeof(ud.config.JoystickDigitalFunctions));
     for (i=0; i<MAXJOYAXES; i++)
     {
-        ud.config.JoystickAnalogueScale[i] = 65536;
-        ud.config.JoystickAnalogueDead[i] = 1000;
-        ud.config.JoystickAnalogueSaturate[i] = 9500;
+		if(i == 0)
+		{
+	        ud.config.JoystickAnalogueScale[i] = 253952; //65536;
+	        ud.config.JoystickAnalogueDead[i] = 1000;
+	        ud.config.JoystickAnalogueSaturate[i] = 9500;
+		}
+		else if(i == 1)
+		{
+	        ud.config.JoystickAnalogueScale[i] = 253952; //65536;
+	        ud.config.JoystickAnalogueDead[i] = 312;
+	        ud.config.JoystickAnalogueSaturate[i] = 6250;
+		}
+		else
+		{
+	        ud.config.JoystickAnalogueScale[i] = 65536;
+	        ud.config.JoystickAnalogueDead[i] = 1000;
+	        ud.config.JoystickAnalogueSaturate[i] = 9500;
+		}
         CONTROL_SetAnalogAxisScale(i, ud.config.JoystickAnalogueScale[i], controldevice_joystick);
 
         ud.config.JoystickDigitalFunctions[i][0] = CONFIG_FunctionNameToNum(joystickdigitaldefaults[i*2]);

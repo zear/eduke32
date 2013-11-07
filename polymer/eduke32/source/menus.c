@@ -62,6 +62,10 @@ extern int32_t voting;
 #define mgametext(x,y,t,s,dabits) G_PrintGameText(2,STARTALPHANUM, x,y,t,s,0,dabits,0, 0, xdim-1, ydim-1, 65536)
 #define mgametextpal(x,y,t,s,p) G_PrintGameText(2,STARTALPHANUM, x,y,t,s,p,26,0, 0, xdim-1, ydim-1, 65536)
 
+// net stuff
+char server_addr[50] = "127.0.0.1";
+char server_port[10] = "23513";
+
 void ChangeToMenu(int32_t cm)
 {
     g_currentMenu = cm;
@@ -163,20 +167,21 @@ static int32_t probe_(int32_t type,int32_t x,int32_t y,int32_t i,int32_t n)
             rotatesprite((x<<16)-((tilesizx[BIGFNTCURSOR]-4)<<(16-type)),(y+(probey*i)-(4>>type))<<16,65536L>>type,0,SPINNINGNUKEICON+(((totalclock>>3))%7),sh,0,10,0,0,xdim-1,ydim-1);
     }
 
-    if (KB_KeyPressed(sc_Space) || KB_KeyPressed(sc_kpad_Enter) || KB_KeyPressed(sc_Enter) || (LMB && !onbar))
+    if (KB_KeyPressed(sc_LeftControl) || KB_KeyPressed(sc_kpad_Enter) || KB_KeyPressed(sc_Enter) || (LMB && !onbar))
     {
         if (g_currentMenu != 110)
             S_PlaySound(PISTOL_BODYHIT);
         KB_ClearKeyDown(sc_Enter);
-        KB_ClearKeyDown(sc_Space);
+        KB_ClearKeyDown(sc_LeftControl);
         KB_ClearKeyDown(sc_kpad_Enter);
         MOUSE_ClearButton(LEFT_MOUSE);
         return(probey);
     }
-    else if (KB_KeyPressed(sc_Escape) || (RMB))
+    else if (KB_KeyPressed(sc_Escape) || KB_KeyPressed(sc_LeftAlt) || (RMB))
     {
         onbar = 0;
         KB_ClearKeyDown(sc_Escape);
+	KB_ClearKeyDown(sc_LeftAlt);
         S_PlaySound(EXITMENUSOUND);
         MOUSE_ClearButton(RIGHT_MOUSE);
         return(-1);
@@ -1284,9 +1289,9 @@ void M_DisplayMenus(void)
         Bsprintf(tempbuf,"\"%s\"",ud.savegame[g_lastSaveSlot]);
         mgametext(160,99,tempbuf,0,2+8+16);
 
-        mgametext(160,99+9,"(Y/N)",0,2+8+16);
+        mgametext(160,99+9,"(A Yes/B No)",0,2+8+16);
 
-        if (KB_KeyPressed(sc_Escape) || KB_KeyPressed(sc_N) || RMB)
+        if (KB_KeyPressed(sc_Escape) || KB_KeyPressed(sc_LeftAlt) || KB_KeyPressed(sc_N) || RMB)
         {
             if (sprite[g_player[myconnectindex].ps->i].extra <= 0)
             {
@@ -1296,6 +1301,7 @@ void M_DisplayMenus(void)
 
             KB_ClearKeyDown(sc_N);
             KB_ClearKeyDown(sc_Escape);
+            KB_ClearKeyDown(sc_LeftAlt);
 
             g_player[myconnectindex].ps->gm &= ~MODE_MENU;
             if ((!g_netServer && ud.multimode < 2) && ud.recstat != 2)
@@ -1305,7 +1311,7 @@ void M_DisplayMenus(void)
             }
         }
 
-        if (KB_KeyPressed(sc_Space) || KB_KeyPressed(sc_Enter) || KB_KeyPressed(sc_kpad_Enter) || KB_KeyPressed(sc_Y) || LMB)
+        if (KB_KeyPressed(sc_LeftControl) || KB_KeyPressed(sc_Enter) || KB_KeyPressed(sc_kpad_Enter) || KB_KeyPressed(sc_Y) || LMB)
         {
             KB_FlushKeyboardQueue();
             KB_ClearKeysDown();
@@ -1458,9 +1464,9 @@ void M_DisplayMenus(void)
         mgametext(160,90,"LOAD game:",0,2+8+16);
         Bsprintf(tempbuf,"\"%s\"",ud.savegame[g_currentMenu-1000]);
         mgametext(160,99,tempbuf,0,2+8+16);
-        mgametext(160,99+9,"(Y/N)",0,2+8+16);
+        mgametext(160,99+9,"(A Yes/B No)",0,2+8+16);
 
-        if (KB_KeyPressed(sc_Space) || KB_KeyPressed(sc_Enter) || KB_KeyPressed(sc_kpad_Enter) || KB_KeyPressed(sc_Y) || LMB)
+        if (KB_KeyPressed(sc_LeftControl) || KB_KeyPressed(sc_Enter) || KB_KeyPressed(sc_kpad_Enter) || KB_KeyPressed(sc_Y) || LMB)
         {
             g_lastSaveSlot = g_currentMenu-1000;
 
@@ -1479,12 +1485,13 @@ void M_DisplayMenus(void)
             break;
         }
 
-        M_Probe(186,124+9,0,0);
+        //M_Probe(186,124+9,0,0); // this prevents from reading other keys than sc_N
 
-        if (KB_KeyPressed(sc_N) || KB_KeyPressed(sc_Escape) || RMB)
+        if (KB_KeyPressed(sc_N) || KB_KeyPressed(sc_Escape) || KB_KeyPressed(sc_LeftAlt) || RMB)
         {
             KB_ClearKeyDown(sc_N);
             KB_ClearKeyDown(sc_Escape);
+            KB_ClearKeyDown(sc_LeftAlt);
             S_PlaySound(EXITMENUSOUND);
             if (g_player[myconnectindex].ps->gm&MODE_GAME)
             {
@@ -1502,19 +1509,22 @@ void M_DisplayMenus(void)
             }
         }
 
+	M_Probe(186,124+9,0,0); // should be moved here instead?
+
         break;
 
     case 1500:
 
-        if (KB_KeyPressed(sc_Space) || KB_KeyPressed(sc_Enter) || KB_KeyPressed(sc_kpad_Enter) || KB_KeyPressed(sc_Y) || LMB)
+        if (KB_KeyPressed(sc_LeftControl) || KB_KeyPressed(sc_Enter) || KB_KeyPressed(sc_kpad_Enter) || KB_KeyPressed(sc_Y) || LMB)
         {
             KB_FlushKeyboardQueue();
             ChangeToMenu(100);
         }
-        if (KB_KeyPressed(sc_N) || KB_KeyPressed(sc_Escape) || RMB)
+        if (KB_KeyPressed(sc_N) || KB_KeyPressed(sc_Escape) || KB_KeyPressed(sc_LeftAlt) || RMB)
         {
             KB_ClearKeyDown(sc_N);
             KB_ClearKeyDown(sc_Escape);
+            KB_ClearKeyDown(sc_LeftAlt);
             if ((!g_netServer && ud.multimode < 2) && ud.recstat != 2)
             {
                 ready2send = 1;
@@ -1526,7 +1536,7 @@ void M_DisplayMenus(void)
         }
         M_Probe(186,124,0,0);
         mgametext(160,90,"ABORT this game?",0,2+8+16);
-        mgametext(160,90+9,"(Y/N)",0,2+8+16);
+        mgametext(160,90+9,"(A Yes/B No)",0,2+8+16);
 
         break;
 
@@ -1558,9 +1568,9 @@ void M_DisplayMenus(void)
         M_DisplaySaveGameList();
 
         mgametext(160,90,"OVERWRITE previous SAVED game?",0,2+8+16);
-        mgametext(160,90+9,"(Y/N)",0,2+8+16);
+        mgametext(160,90+9,"(A Yes/B No)",0,2+8+16);
 
-        if (KB_KeyPressed(sc_Space) || KB_KeyPressed(sc_Enter) || KB_KeyPressed(sc_kpad_Enter) || KB_KeyPressed(sc_Y) || LMB)
+        if (KB_KeyPressed(sc_LeftControl) || KB_KeyPressed(sc_Enter) || KB_KeyPressed(sc_kpad_Enter) || KB_KeyPressed(sc_Y) || LMB)
         {
             inputloc = strlen(&ud.savegame[g_currentMenu-2000][0]);
 
@@ -1569,10 +1579,11 @@ void M_DisplayMenus(void)
             KB_FlushKeyboardQueue();
             break;
         }
-        if (KB_KeyPressed(sc_N) || KB_KeyPressed(sc_Escape) || RMB)
+        if (KB_KeyPressed(sc_N) || KB_KeyPressed(sc_Escape) || KB_KeyPressed(sc_LeftAlt) || RMB)
         {
             KB_ClearKeyDown(sc_N);
             KB_ClearKeyDown(sc_Escape);
+            KB_ClearKeyDown(sc_LeftAlt);
             ChangeToMenu(351);
             S_PlaySound(EXITMENUSOUND);
         }
@@ -1624,7 +1635,7 @@ void M_DisplayMenus(void)
         else if (
             KB_KeyPressed(sc_PgDn) ||
             KB_KeyPressed(sc_Enter) ||
-            KB_KeyPressed(sc_Space) ||
+            KB_KeyPressed(sc_LeftControl) ||
             KB_KeyPressed(sc_kpad_Enter) ||
             KB_KeyPressed(sc_RightArrow) ||
             KB_KeyPressed(sc_DownArrow) ||
@@ -1641,7 +1652,7 @@ void M_DisplayMenus(void)
             KB_ClearKeyDown(sc_kpad_9);
             KB_ClearKeyDown(sc_kpad_2);
             KB_ClearKeyDown(sc_DownArrow);
-            KB_ClearKeyDown(sc_Space);
+            KB_ClearKeyDown(sc_LeftControl);
             S_PlaySound(KICK_HIT);
             g_currentMenu++;
             if (g_currentMenu > 990+l) g_currentMenu = 990;
@@ -3493,7 +3504,7 @@ cheat_for_port_credits:
             KB_ClearKeyDown(sc_Tab);
             S_PlaySound(KICK_HIT);
         }
-        else if (KB_KeyPressed(sc_Delete))
+        else if (KB_KeyPressed(sc_BackSpace))
         {
             char key[2];
             key[0] = ud.config.KeyboardKeys[probey][0];
@@ -3501,7 +3512,7 @@ cheat_for_port_credits:
             ud.config.KeyboardKeys[probey][currentlist] = 0xff;
             CONFIG_MapKey(probey, ud.config.KeyboardKeys[probey][0], key[0], ud.config.KeyboardKeys[probey][1], key[1]);
             S_PlaySound(KICK_HIT);
-            KB_ClearKeyDown(sc_Delete);
+            KB_ClearKeyDown(sc_BackSpace);
         }
 
         for (l=min(13,NUMGAMEFUNCTIONS)-1; l >= 0 ; l--)
@@ -3526,11 +3537,13 @@ cheat_for_port_credits:
                           (m+l == probey && currentlist?0:16),2,10+16);
         }
 
-        mgametextpal(160,140,  "RESET KEYS TO DEFAULTS",MENUHIGHLIGHT(NUMGAMEFUNCTIONS),10);
-        mgametextpal(160,140+7,"SET CLASSIC KEY LAYOUT",MENUHIGHLIGHT(NUMGAMEFUNCTIONS+1),10);
+//        mgametextpal(160,140,  "RESET KEYS TO DEFAULTS",MENUHIGHLIGHT(NUMGAMEFUNCTIONS),10);
+//        mgametextpal(160,140+7,"SET CLASSIC KEY LAYOUT",MENUHIGHLIGHT(NUMGAMEFUNCTIONS+1),10);
+        mgametextpal(160,140,  "SET KEY LAYOUT #1 (GCW0 STYLE)",MENUHIGHLIGHT(NUMGAMEFUNCTIONS),10);
+        mgametextpal(160,140+7,"SET KEY LAYOUT #2 (A320 STYLE)",MENUHIGHLIGHT(NUMGAMEFUNCTIONS+1),10);
         mgametext(160,144+9+3,"UP/DOWN = SELECT ACTION",0,2+8+16);
         mgametext(160,144+9+9+3,"LEFT/RIGHT = SELECT LIST",0,2+8+16);
-        mgametext(160,144+9+9+9+3,"ENTER = MODIFY   DELETE = CLEAR",0,2+8+16);
+        mgametext(160,144+9+9+9+3,"A = MODIFY   R = CLEAR",0,2+8+16);
 
         break;
 
@@ -3543,7 +3556,7 @@ cheat_for_port_credits:
         mgametext(320>>1,90,"PRESS THE KEY TO ASSIGN AS",0,2+8+16);
         Bsprintf(tempbuf,"%s FOR \"%s\"", whichkey?"SECONDARY":"PRIMARY", CONFIG_FunctionNumToName(function));
         mgametext(320>>1,90+9,tempbuf,0,2+8+16);
-        mgametext(320>>1,90+9+9+9,"PRESS \"ESCAPE\" TO CANCEL",0,2+8+16);
+        mgametext(320>>1,90+9+9+9,"PRESS \"SELECT\" TO CANCEL",0,2+8+16);
 
         sc = KB_GetLastScanCode();
         if (sc != sc_None || RMB)
@@ -3702,7 +3715,7 @@ cheat_for_port_credits:
         if (probey < (MAXMOUSEBUTTONS-2)*2+2)
         {
             mgametext(160,160+9,"UP/DOWN = SELECT BUTTON",0,2+8+16);
-            mgametext(160,160+9+9,"ENTER = MODIFY",0,2+8+16);
+            mgametext(160,160+9+9,"A = MODIFY",0,2+8+16);
         }
         break;
 
@@ -3870,7 +3883,7 @@ cheat_for_port_credits:
             minitext(100,51+l*8,tempbuf,(m+l == probey)?0:16,10+16);
         }
 
-        mgametext(320>>1,161,"PRESS \"ESCAPE\" TO CANCEL",0,2+8+16);
+        mgametext(320>>1,161,"PRESS \"SELECT\" TO CANCEL",0,2+8+16);
 
         break;
 
@@ -4517,7 +4530,7 @@ cheat_for_port_credits:
                 break;
                 case 4:
                 {
-                    int32_t rates[] = { 22050, 24000, 32000, 44100, 48000 };
+                    int32_t rates[] = { 11025, 22050, 24000, 32000, 44100, 48000 };
                     int32_t j = (sizeof(rates)/sizeof(rates[0]));
 
                     for (i = 0; i<j; i++)
@@ -4683,7 +4696,10 @@ cheat_for_port_credits:
             if (ud.volume_number == 0 && ud.level_number == 7)
                 mgametext(160,180,currentboardfilename,0,2+8+16);
 
-            x = G_EnterText((320>>1),184,&ud.savegame[g_currentMenu-360][0],20, 999);
+            //x = G_EnterText((320>>1),184,&ud.savegame[g_currentMenu-360][0],20, 999);
+	    // skip the text input dialog
+	    x = 1;
+	    ud.savegame[g_currentMenu-360][0] = 0;
 
             if (x == -1)
             {
@@ -4715,6 +4731,7 @@ cheat_for_port_credits:
                     totalclock = ototalclock;
                 }
                 KB_ClearKeyDown(sc_Escape);
+                KB_ClearKeyDown(sc_LeftAlt);
                 S_PlaySound(EXITMENUSOUND);
                 crc = 0;
             }
@@ -4856,7 +4873,7 @@ DISPLAYNAMES:
             KB_KeyPressed(sc_DownArrow) ||
             KB_KeyPressed(sc_kpad_2) ||
             KB_KeyPressed(sc_kpad_9) ||
-            KB_KeyPressed(sc_Space) ||
+            KB_KeyPressed(sc_LeftControl) ||
             KB_KeyPressed(sc_kpad_6))
         {
             KB_ClearKeyDown(sc_PgDn);
@@ -4867,13 +4884,13 @@ DISPLAYNAMES:
             KB_ClearKeyDown(sc_kpad_9);
             KB_ClearKeyDown(sc_kpad_2);
             KB_ClearKeyDown(sc_DownArrow);
-            KB_ClearKeyDown(sc_Space);
+            KB_ClearKeyDown(sc_LeftControl);
             S_PlaySound(KICK_HIT);
             g_currentMenu++;
             if (g_currentMenu > 403) g_currentMenu = 400;
         }
 
-        if (KB_KeyPressed(sc_Escape))
+        if (KB_KeyPressed(sc_Escape) || KB_KeyPressed(sc_LeftAlt))
         {
             if (g_player[myconnectindex].ps->gm&MODE_GAME)
                 ChangeToMenu(50);
@@ -4913,7 +4930,7 @@ VOLUME_ALL_40x:
             KB_KeyPressed(sc_DownArrow) ||
             KB_KeyPressed(sc_kpad_2) ||
             KB_KeyPressed(sc_kpad_9) ||
-            KB_KeyPressed(sc_Space) ||
+            KB_KeyPressed(sc_LeftControl) ||
             KB_KeyPressed(sc_kpad_6) ||
             LMB || WHEELUP)
         {
@@ -4925,7 +4942,7 @@ VOLUME_ALL_40x:
             KB_ClearKeyDown(sc_kpad_9);
             KB_ClearKeyDown(sc_kpad_2);
             KB_ClearKeyDown(sc_DownArrow);
-            KB_ClearKeyDown(sc_Space);
+            KB_ClearKeyDown(sc_LeftControl);
             S_PlaySound(KICK_HIT);
             g_currentMenu++;
             if (g_currentMenu > 401) g_currentMenu = 400;
@@ -4975,9 +4992,9 @@ VOLUME_ALL_40x:
         c = 320>>1;
 
         mgametext(c,90,"Are you sure you want to quit?",0,2+8+16);
-        mgametext(c,99,"(Y/N)",0,2+8+16);
+        mgametext(c,99,"(A Yes/B No)",0,2+8+16);
 
-        if (KB_KeyPressed(sc_Space) || KB_KeyPressed(sc_Enter) || KB_KeyPressed(sc_kpad_Enter) || KB_KeyPressed(sc_Y) || LMB)
+        if (KB_KeyPressed(sc_LeftControl) || KB_KeyPressed(sc_Enter) || KB_KeyPressed(sc_kpad_Enter) || KB_KeyPressed(sc_Y) || LMB)
         {
             KB_FlushKeyboardQueue();
 
@@ -5013,9 +5030,9 @@ VOLUME_ALL_40x:
     case 501:
         c = 320>>1;
         mgametext(c,90,"Quit to Title?",0,2+8+16);
-        mgametext(c,99,"(Y/N)",0,2+8+16);
+        mgametext(c,99,"(A Yes/B No)",0,2+8+16);
 
-        if (KB_KeyPressed(sc_Space) || KB_KeyPressed(sc_Enter) || KB_KeyPressed(sc_kpad_Enter) || KB_KeyPressed(sc_Y) || LMB)
+        if (KB_KeyPressed(sc_LeftControl) || KB_KeyPressed(sc_Enter) || KB_KeyPressed(sc_kpad_Enter) || KB_KeyPressed(sc_Y) || LMB)
         {
             KB_FlushKeyboardQueue();
             g_player[myconnectindex].ps->gm = MODE_DEMO;
@@ -5047,9 +5064,10 @@ VOLUME_ALL_40x:
         mgametext(160,50,tempbuf,0,2+8+16);
         mgametext(160,59,"to select level",0,2+8+16);
 
-        if (KB_KeyPressed(sc_Escape))
+        if (KB_KeyPressed(sc_Escape) || KB_KeyPressed(sc_LeftAlt))
         {
             KB_ClearKeyDown(sc_Escape);
+            KB_ClearKeyDown(sc_LeftAlt);
             S_PlaySound(EXITMENUSOUND);
             ChangeToMenu(0);
         }

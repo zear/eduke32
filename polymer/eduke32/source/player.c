@@ -2971,6 +2971,9 @@ void getinput(int32_t snum)
     int32_t turnamount;
     int32_t keymove;
     int32_t momx = 0,momy = 0;
+
+    uint8_t inventoryAction = 0;
+
     DukePlayer_t *p = g_player[snum].ps;
 
     if ((p->gm & (MODE_MENU|MODE_TYPE)) || (ud.pause_on && !KB_KeyPressed(sc_Pause)))
@@ -3160,10 +3163,12 @@ void getinput(int32_t snum)
         j = 9;
     if (BUTTON(gamefunc_Weapon_10))
         j = 10;
-    if (BUTTON(gamefunc_Previous_Weapon) || (BUTTON(gamefunc_Dpad_Select) && vel < 0))
-        j = 11;
-    if (BUTTON(gamefunc_Next_Weapon) || (BUTTON(gamefunc_Dpad_Select) && vel > 0))
-        j = 12;
+//    if (BUTTON(gamefunc_Previous_Weapon) || (BUTTON(gamefunc_Dpad_Select) && vel < 0))
+//    if ((BUTTON(gamefunc_Previous_Weapon) || (BUTTON(gamefunc_Dpad_Select) && vel < 0)) && !inventoryAction)
+//        j = 11;
+//    if (BUTTON(gamefunc_Next_Weapon) || (BUTTON(gamefunc_Dpad_Select) && vel > 0))
+//    if ((BUTTON(gamefunc_Next_Weapon) || (BUTTON(gamefunc_Dpad_Select) && vel > 0)) && !inventoryAction)
+//        j = 12;
 
     if (BUTTON(gamefunc_Jump) && p->on_ground)
         jump_timer = 4;
@@ -3173,8 +3178,73 @@ void getinput(int32_t snum)
     if (jump_timer > 0)
         jump_timer--;
 
-    loc.bits |=   BUTTON(gamefunc_Crouch)<<SK_CROUCH;
-    loc.bits |=   BUTTON(gamefunc_Fire)<<SK_FIRE;
+    /* lock the crouching */
+    if(BUTTON(gamefunc_Crouch))
+    {
+	if(p->jetpack_on)
+	{
+		p->isCrouching = 1;
+	}
+	else if(p->isCrouching && !p->crouchKeyPressed)
+	{
+		p->crouchKeyPressed = 1;
+		p->isCrouching = 0;
+	}
+	else if(!p->isCrouching && !p->crouchKeyPressed)
+	{
+		p->crouchKeyPressed = 1;
+		p->isCrouching = 1;
+	}
+    }
+
+    if(!BUTTON(gamefunc_Crouch))
+    {
+	if(p->crouchKeyPressed)
+	{
+		p->crouchKeyPressed = 0;
+	}
+	if(p->jetpack_on || (sector[p->cursectnum].lotag == 2)) // jetpack or underwater
+	{
+		p->isCrouching = 0;
+	}
+    }
+
+    if(BUTTON(gamefunc_Jump) && p->isCrouching)
+    {
+	p->isCrouching = 0;
+    }
+
+    /* inventory macro */
+    if(BUTTON(gamefunc_Inventory_Macro))
+    {
+	if(BUTTON(gamefunc_Previous_Weapon))
+	{
+	    loc.bits |=   1<<SK_INV_LEFT;
+	}
+	else if(BUTTON(gamefunc_Next_Weapon))
+	{
+	    loc.bits |=   1<<SK_INV_RIGHT;
+	}
+	else if(BUTTON(gamefunc_Open))
+	{
+	    loc.bits |=   1<<SK_INVENTORY;
+	}
+	else if(BUTTON(gamefunc_Fire))
+	{
+	    loc.bits |=   1<<SK_QUICK_KICK;
+	}
+	inventoryAction = 1;
+    }
+
+    if ((BUTTON(gamefunc_Previous_Weapon) || (BUTTON(gamefunc_Dpad_Select) && vel < 0)) && !inventoryAction)
+        j = 11;
+    if ((BUTTON(gamefunc_Next_Weapon) || (BUTTON(gamefunc_Dpad_Select) && vel > 0)) && !inventoryAction)
+        j = 12;
+
+//    loc.bits |=   BUTTON(gamefunc_Crouch)<<SK_CROUCH;
+    loc.bits |= p->isCrouching<<SK_CROUCH;
+//    loc.bits |=   BUTTON(gamefunc_Fire)<<SK_FIRE;
+    loc.bits |=   (BUTTON(gamefunc_Fire) && !inventoryAction)<<SK_FIRE;
     loc.bits |= (BUTTON(gamefunc_Aim_Up) || (BUTTON(gamefunc_Dpad_Aiming) && vel > 0))<<SK_AIM_UP;
     loc.bits |= (BUTTON(gamefunc_Aim_Down) || (BUTTON(gamefunc_Dpad_Aiming) && vel < 0))<<SK_AIM_DOWN;
     if (ud.runkey_mode) loc.bits |= (ud.auto_run | BUTTON(gamefunc_Run))<<SK_RUN;
@@ -3198,7 +3268,8 @@ void getinput(int32_t snum)
     loc.bits |= (((int32_t)g_gameQuit)<<SK_GAMEQUIT);
     loc.bits |= (BUTTON(gamefunc_Inventory_Right) || (BUTTON(gamefunc_Dpad_Select) && (svel < 0 || angvel > 0))) <<SK_INV_RIGHT;
     loc.bits |=   BUTTON(gamefunc_TurnAround)<<SK_TURNAROUND;
-    loc.bits |=   BUTTON(gamefunc_Open)<<SK_OPEN;
+//    loc.bits |=   BUTTON(gamefunc_Open)<<SK_OPEN;
+    loc.bits |=   (BUTTON(gamefunc_Open) && !inventoryAction)<<SK_OPEN;
     loc.bits |=   BUTTON(gamefunc_Inventory)<<SK_INVENTORY;
     loc.bits |=   KB_KeyPressed(sc_Escape)<<SK_ESCAPE;
 

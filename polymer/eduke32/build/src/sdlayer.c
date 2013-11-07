@@ -229,7 +229,7 @@ static void attach_debugger_here(void){}
 
 #ifdef __GNUC__
 # define PRINTSTACKONSEGV 1
-# include <execinfo.h>
+//# include <execinfo.h>
 #endif
 
 static void sighandler(int signum)
@@ -238,13 +238,13 @@ static void sighandler(int signum)
 //    if (signum==SIGSEGV)
     {
         SDL_WM_GrabInput(SDL_GRAB_OFF);
-        SDL_ShowCursor(SDL_ENABLE);
+        //SDL_ShowCursor(SDL_ENABLE);
 #if PRINTSTACKONSEGV
         {
             void *addr[32];
             int32_t errfd = fileno(stderr);
-            int32_t n=backtrace(addr, sizeof(addr)/sizeof(addr[0]));
-            backtrace_symbols_fd(addr, n, errfd);
+//            int32_t n=backtrace(addr, sizeof(addr)/sizeof(addr[0]));
+//            backtrace_symbols_fd(addr, n, errfd);
         }
         // This is useful for attaching the debugger post-mortem. For those pesky
         // cases where the program runs through happily when inspected from the start.
@@ -341,6 +341,8 @@ int32_t initsystem(void)
     initprintf("  Total video memory:                    %dKB\n", vid->video_mem);
     #endif
     */
+
+    SDL_ShowCursor(SDL_DISABLE);
     return 0;
 }
 
@@ -461,7 +463,55 @@ int32_t initinput(void)
     for (i=0; i<SDLK_LAST; i++)
     {
         if (!keytranslation[i]) continue;
-        Bstrncpy((char *)key_names[ keytranslation[i] ], SDL_GetKeyName(i), sizeof(key_names[i])-1);
+//        Bstrncpy((char *)key_names[ keytranslation[i] ], SDL_GetKeyName(i), sizeof(key_names[i])-1);
+	switch(i)
+	{
+		case SDLK_UP:
+			Bstrncpy((char *)key_names[ keytranslation[i] ], "D-PAD Up", sizeof(key_names[i])-1);
+			break;
+		case SDLK_DOWN:
+			Bstrncpy((char *)key_names[ keytranslation[i] ], "D-PAD Down", sizeof(key_names[i])-1);
+			break;
+		case SDLK_LEFT:
+			Bstrncpy((char *)key_names[ keytranslation[i] ], "D-PAD Left", sizeof(key_names[i])-1);
+			break;
+		case SDLK_RIGHT:
+			Bstrncpy((char *)key_names[ keytranslation[i] ], "D-PAD Right", sizeof(key_names[i])-1);
+			break;
+		case SDLK_LCTRL:
+			Bstrncpy((char *)key_names[ keytranslation[i] ], "A", sizeof(key_names[i])-1);
+			break;
+		case SDLK_LALT:
+			Bstrncpy((char *)key_names[ keytranslation[i] ], "B", sizeof(key_names[i])-1);
+			break;
+		case SDLK_LSHIFT:
+			Bstrncpy((char *)key_names[ keytranslation[i] ], "X", sizeof(key_names[i])-1); // GCW0
+			//Bstrncpy((char *)key_names[ keytranslation[i] ], "Y", sizeof(key_names[i])-1); // A320
+			break;
+		case SDLK_SPACE:
+			Bstrncpy((char *)key_names[ keytranslation[i] ], "Y", sizeof(key_names[i])-1); // GCW0
+			//Bstrncpy((char *)key_names[ keytranslation[i] ], "X", sizeof(key_names[i])-1); // A320
+			break;
+		case SDLK_TAB:
+			Bstrncpy((char *)key_names[ keytranslation[i] ], "Left shoulder", sizeof(key_names[i])-1);
+			break;
+		case SDLK_BACKSPACE:
+			Bstrncpy((char *)key_names[ keytranslation[i] ], "Right shoulder", sizeof(key_names[i])-1);
+			break;
+		case SDLK_RETURN:
+			Bstrncpy((char *)key_names[ keytranslation[i] ], "Start", sizeof(key_names[i])-1);
+			break;
+		case SDLK_ESCAPE:
+			Bstrncpy((char *)key_names[ keytranslation[i] ], "Select", sizeof(key_names[i])-1);
+			break;
+		case SDLK_PAUSE:
+			Bstrncpy((char *)key_names[ keytranslation[i] ], "Lock", sizeof(key_names[i])-1);
+			break;
+		default:
+			Bstrncpy((char *)key_names[ keytranslation[i] ], SDL_GetKeyName(i), sizeof(key_names[i])-1);
+			break;
+	}
+
     }
 #else
     for (i=0; i<SDL_NUM_SCANCODES; i++)
@@ -549,7 +599,7 @@ const char *getjoyname(int32_t what, int32_t num)
 int32_t initmouse(void)
 {
     moustat=1;
-    grabmouse(1); // FIXME - SA
+    grabmouse(0); // FIXME - SA
     return 0;
 }
 
@@ -578,7 +628,7 @@ void grabmouse(char a)
             g = SDL_WM_GrabInput(a ? SDL_GRAB_ON : SDL_GRAB_OFF);
             mouseacquired = (g == SDL_GRAB_ON);
 
-            SDL_ShowCursor(mouseacquired ? SDL_DISABLE : SDL_ENABLE);
+            //SDL_ShowCursor(mouseacquired ? SDL_DISABLE : SDL_ENABLE);
 #else
             mouseacquired = a;
 #endif
@@ -778,9 +828,11 @@ void getvalidmodes(void)
     };
     static int32_t defaultres[][2] =
     {
-        {1280,1024}
-        ,{1280,960},{1152,864},{1024,768},{800,600},{640,480},
-        {640,400},{512,384},{480,360},{400,300},{320,240},{320,200},{0,0}
+// Only 320x240 is valid for Dingoo A320
+//        {1280,1024}
+//        ,{1280,960},{1152,864},{1024,768},{800,600},{640,480},
+//        {640,400},{512,384},{480,360},{400,300},{320,240},{320,200},{0,0}
+	{320,240},{0,0}
     };
     SDL_Rect **modes;
 #if (SDL_MAJOR_VERSION > 1 || SDL_MINOR_VERSION > 2)
@@ -1069,8 +1121,8 @@ int32_t setvideomode(int32_t x, int32_t y, int32_t c, int32_t fs)
 #endif
     {
         initprintf("Setting video mode %dx%d (%d-bpp %s)\n",
-                   x,y,c, ((fs&1) ? "fullscreen" : "windowed"));
-        sdl_surface = SDL_SetVideoMode(x, y, c, SURFACE_FLAGS | ((fs&1)?SDL_FULLSCREEN:0));
+                   x,y,16, ((fs&1) ? "fullscreen" : "windowed"));
+        sdl_surface = SDL_SetVideoMode(x, y, 8, SDL_HWSURFACE | SDL_DOUBLEBUF | ((fs&1)?SDL_FULLSCREEN:0));
         if (!sdl_surface)
         {
             initprintf("Unable to set video mode!\n");
@@ -1591,7 +1643,7 @@ int32_t handleevents(void)
                 if (mouseacquired && moustat)
                 {
                     SDL_WM_GrabInput(SDL_GRAB_ON);
-                    SDL_ShowCursor(SDL_DISABLE);
+                    //SDL_ShowCursor(SDL_DISABLE);
                 }
 #endif
                 break;
@@ -1601,7 +1653,7 @@ int32_t handleevents(void)
                 if (mouseacquired && moustat)
                 {
                     SDL_WM_GrabInput(SDL_GRAB_OFF);
-                    SDL_ShowCursor(SDL_ENABLE);
+                    //SDL_ShowCursor(SDL_ENABLE);
                 }
 #endif
                 break;
@@ -1679,12 +1731,12 @@ int32_t handleevents(void)
                     if (appactive)
                     {
                         SDL_WM_GrabInput(SDL_GRAB_ON);
-                        SDL_ShowCursor(SDL_DISABLE);
+                        //SDL_ShowCursor(SDL_DISABLE);
                     }
                     else
                     {
                         SDL_WM_GrabInput(SDL_GRAB_OFF);
-                        SDL_ShowCursor(SDL_ENABLE);
+                        //SDL_ShowCursor(SDL_ENABLE);
                     }
                 }
 #endif
@@ -2020,12 +2072,19 @@ static int32_t buildkeytranslationtable(void)
 
 #define MAP(x,y) keytranslation[x] = y
     printf("%d\n",SDL_SCANCODE_BACKSPACE);
-    MAP(SDL_SCANCODE_BACKSPACE,	0xe);
-    MAP(SDL_SCANCODE_TAB,		0xf);
-    MAP(SDL_SCANCODE_RETURN,	0x1c);
-    MAP(SDL_SCANCODE_PAUSE,		0x59);	// 0x1d + 0x45 + 0x9d + 0xc5
-    MAP(SDL_SCANCODE_ESCAPE,	0x1);
-    MAP(SDL_SCANCODE_SPACE,		0x39);
+//    MAP(SDL_SCANCODE_BACKSPACE,	0xe);
+    MAP("Right shoulder",	0xe);
+//    MAP(SDL_SCANCODE_TAB,		0xf);
+    MAP("Left shoulder",		0xf);
+//    MAP(SDL_SCANCODE_RETURN,	0x1c);
+    MAP("Start",	0x1c);
+//    MAP(SDL_SCANCODE_PAUSE,		0x59);	// 0x1d + 0x45 + 0x9d + 0xc5
+    MAP("Lock",		0x59);	// 0x1d + 0x45 + 0x9d + 0xc5
+//    MAP(SDL_SCANCODE_ESCAPE,	0x1);
+    MAP("Select",	0x1);
+//    MAP(SDL_SCANCODE_SPACE,		0x39);
+//    MAP("X",		0x39); // A320
+    MAP("Y",		0x39); // GCW
     MAP(SDL_SCANCODE_COMMA,		0x33);
     MAP(SDL_SCANCODE_MINUS,		0xc);
     MAP(SDL_SCANCODE_PERIOD,	0x34);
@@ -2114,11 +2173,15 @@ static int32_t buildkeytranslationtable(void)
     MAP(SDL_SCANCODE_CAPSLOCK,	0x3a);
     MAP(SDL_SCANCODE_SCROLLLOCK,	0x46);
     MAP(SDL_SCANCODE_RSHIFT,	0x36);
-    MAP(SDL_SCANCODE_LSHIFT,	0x2a);
+//    MAP(SDL_SCANCODE_LSHIFT,	0x2a);
+//    MAP("Y",	0x2a); // A320
+    MAP("X",	0x2a); // GCW
     MAP(SDL_SCANCODE_RCTRL,		0x9d);
-    MAP(SDL_SCANCODE_LCTRL,		0x1d);
+//    MAP(SDL_SCANCODE_LCTRL,		0x1d);
+    MAP("A",		0x1d);
     MAP(SDL_SCANCODE_RALT,		0xb8);
-    MAP(SDL_SCANCODE_LALT,		0x38);
+//    MAP(SDL_SCANCODE_LALT,		0x38);
+    MAP("B",		0x38);
     MAP(SDL_SCANCODE_LGUI,	0xdb);	// win l
     MAP(SDL_SCANCODE_RGUI,	0xdc);	// win r
     MAP(SDL_SCANCODE_PRINTSCREEN,		-2);	// 0xaa + 0xb7

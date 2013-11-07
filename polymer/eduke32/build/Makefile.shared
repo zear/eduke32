@@ -4,7 +4,8 @@ ENGINELIB=libengine.a
 EDITORLIB=libbuild.a
 
 # SDLCONFIG = /usr/local/bin/sdl-config
-SDLCONFIG = /usr/bin/sdl-config
+#SDLCONFIG = /usr/bin/sdl-config
+SDLCONFIG = /opt/gcw0-toolchain/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/bin/sdl-config
 
 ifeq ($(wildcard $(SDLCONFIG)),$(SDLCONFIG))
     SDLROOT		= /usr/local

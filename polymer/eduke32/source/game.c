@@ -2007,7 +2007,23 @@ int32_t _EnterText(int32_t small,int32_t x,int32_t y,char *t,int32_t dalen,int32
 {
     char ch;
     int32_t i;
+    int done = 0;
+    int defChar;
+    int tmp;
 
+    if(c == 996)
+    {
+	defChar = 49;
+    }
+    else if(c == 997)
+    {
+	defChar = 48;
+    }
+    else
+    {
+	defChar = 65;
+    }
+/*
     while ((ch = KB_Getch()) != 0 || (g_player[myconnectindex].ps->gm&MODE_MENU && MOUSE_GetButtons()&RIGHT_MOUSE))
     {
         if (ch == asc_BackSpace)
@@ -2045,6 +2061,118 @@ int32_t _EnterText(int32_t small,int32_t x,int32_t y,char *t,int32_t dalen,int32
             }
         }
     }
+*/
+    if (KB_KeyPressed(sc_LeftControl) || KB_KeyPressed(sc_Enter) || KB_KeyPressed(sc_kpad_Enter))
+    {
+        KB_ClearKeyDown(sc_Enter);
+        KB_ClearKeyDown(sc_LeftControl);
+        KB_ClearKeyDown(sc_kpad_Enter);
+	return (1);
+    }
+
+    ch = t[inputloc-1];
+    //ch = *(t+inputloc); //t[inputloc];
+
+    if (KB_KeyPressed(sc_LeftArrow) || KB_KeyPressed(sc_BackSpace))
+    {
+	KB_ClearKeyDown(sc_LeftArrow);
+	KB_ClearKeyDown(sc_BackSpace);
+
+	if (inputloc > 1)
+	{
+		inputloc--;
+		*(t+inputloc) = 0;
+		ch = *(t+inputloc-1);
+	}
+	else
+	{
+		ch = defChar;
+	}
+    }
+    if (KB_KeyPressed(sc_RightArrow) || inputloc == 0)
+    {
+	KB_ClearKeyDown(sc_RightArrow);
+	if(inputloc < dalen)
+	{
+		inputloc++;
+		*(t+inputloc) = 0;
+		ch = defChar;
+	}
+    }
+    if (KB_KeyPressed(sc_UpArrow))
+    {
+	KB_ClearKeyDown(sc_UpArrow);
+	ch++;
+	tmp = 1;
+    }
+    if (KB_KeyPressed(sc_DownArrow))
+    {
+	KB_ClearKeyDown(sc_DownArrow);
+	ch--;
+	tmp = 0;
+    }
+
+/*
+    if (ch >= 32 && inputloc < dalen && ch < 127)
+    {
+	ch = Btoupper(ch);
+	if (c != 997 || (ch >= '0' && ch <= '9'))
+	{
+		// JBF 20040508: so we can have numeric only if we want
+		*(t+inputloc) = ch;
+		*(t+inputloc+1) = 0;
+		inputloc++;
+	}
+    }
+*/
+    if(c == 996)
+    {
+	    if(ch < 46)
+	    {
+		ch = 57;
+	    }
+	    else if(ch > 46 && ch < 48)
+	    {
+		if(!tmp)
+		{
+			ch = 46;
+		}
+		else
+		{
+			ch = 48;
+		}
+	    }
+	    else if(ch > 57)
+	    {
+		ch = 46;
+	    }
+    }
+    else if(c == 997)
+    {
+	    if(ch < 48)
+	    {
+		ch = 57;
+	    }
+	    else if(ch > 57)
+	    {
+		ch = 48;
+	    }
+    }
+    else
+    {
+	    if(ch < 32)
+	    {
+		ch = 126;
+	    }
+	    else if(ch > 126)
+	    {
+		ch = 32;
+	    }
+    }
+
+    t[inputloc-1] = ch;
+
+    //printf("Char: %c\n", ch);
 
     if (c == 999) return(0);
     if (c == 998)
@@ -3240,7 +3368,7 @@ void G_DrawRooms(int32_t snum, int32_t smoothratio)
     ud.camerasect = p->cursectnum;
 
     G_DoInterpolations(smoothratio);
-    G_AnimateCamSprite();
+    //G_AnimateCamSprite(); /* Camera sprite disabled for Dingoo A320 platform performance increase */
 
     if (ud.camerasprite >= 0)
     {

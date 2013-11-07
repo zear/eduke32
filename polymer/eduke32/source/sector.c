@@ -370,7 +370,7 @@ void G_AnimateCamSprite(void)
 
     if (camsprite <= 0) return;
 
-    if (T1 >= 4)
+    if (T1 >= 11)
     {
         T1 = 0;
 

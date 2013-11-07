@@ -192,6 +192,8 @@ typedef struct {
     int8_t numloogs, loogcnt, scream_voice, transporter_hold;
     int8_t last_weapon, cheat_phase, weapon_pos, wantweaponfire, curr_weapon;
 
+    uint8_t isCrouching, crouchKeyPressed;
+
     palette_t pals;
 
     char name[32];

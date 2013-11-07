@@ -171,7 +171,7 @@ int8_t coltype, filtype, bitdepth;
 
 //.PNG specific variables:
 static int32_t bakr = 0x80, bakg = 0x80, bakb = 0x80; //this used to be public...
-static int32_t gslidew = 0, gslider = 0, xm, xmn[4], xr0, xr1, xplc, yplc;
+static int32_t gslidew = 0, gslider = 0, xm, xmn[4], xr0_, xr1_, xplc, yplc;
 static intptr_t nfplace;
 static int32_t clen[320], cclen[19], bitpos, filt, xsiz, ysiz;
 static int32_t xsizbpl, ixsiz, ixoff, iyoff, ixstp, iystp, intlac, nbpl, trnsrgb ASMNAME("trnsrgb");
@@ -490,24 +490,24 @@ static int32_t initpass()  //Interlaced images have 7 "passes", non-interlaced h
 
     //Precalculate x-clipping to screen borders (speeds up putbuf)
     //Equation: (0 <= xr <= ixsiz) && (0 <= xr*ixstp+globxoffs+ixoff <= xres)
-    xr0 = max((-globxoffs-ixoff+(1<<j)-1)>>j,0);
-    xr1 = min((xres-globxoffs-ixoff+(1<<j)-1)>>j,ixsiz);
-    xr0 = ixsiz-xr0;
-    xr1 = ixsiz-xr1;
+    xr0_ = max((-globxoffs-ixoff+(1<<j)-1)>>j,0);
+    xr1_ = min((xres-globxoffs-ixoff+(1<<j)-1)>>j,ixsiz);
+    xr0_ = ixsiz-xr0_;
+    xr1_ = ixsiz-xr1_;
 
-    if (coltype == 4) { xr0 = xr0*2;   xr1 = xr1*2;   }
-    else if (coltype == 2) { xr0 = xr0*3-2; xr1 = xr1*3-2; }
-    else if (coltype == 6) { xr0 = xr0*4-2; xr1 = xr1*4-2; }
+    if (coltype == 4) { xr0_ = xr0_*2;   xr1_ = xr1_*2;   }
+    else if (coltype == 2) { xr0_ = xr0_*3-2; xr1_ = xr1_*3-2; }
+    else if (coltype == 6) { xr0_ = xr0_*4-2; xr1_ = xr1_*4-2; }
     else
     {
         switch (bitdepth)
         {
-        case 1: xr0 += ((-ixsiz)&7)+7;
-            xr1 += ((-ixsiz)&7)+7; break;
-        case 2: xr0 = ((xr0+((-ixsiz)&3)+3)<<1);
-            xr1 = ((xr1+((-ixsiz)&3)+3)<<1); break;
-        case 4: xr0 = ((xr0+((-ixsiz)&1)+1)<<2);
-            xr1 = ((xr1+((-ixsiz)&1)+1)<<2); break;
+        case 1: xr0_ += ((-ixsiz)&7)+7;
+            xr1_ += ((-ixsiz)&7)+7; break;
+        case 2: xr0_ = ((xr0_+((-ixsiz)&3)+3)<<1);
+            xr1_ = ((xr1_+((-ixsiz)&3)+3)<<1); break;
+        case 4: xr0_ = ((xr0_+((-ixsiz)&1)+1)<<2);
+            xr1_ = ((xr1_+((-ixsiz)&1)+1)<<2); break;
         }
     }
     ixstp <<= 2;
@@ -694,15 +694,15 @@ static inline int32_t Paeth686(int32_t a, int32_t b, int32_t c)
     return(Paeth(a,b,c));
 }
 
-static inline void rgbhlineasm(int32_t x, int32_t xr1, intptr_t p, int32_t ixstp)
+static inline void rgbhlineasm(int32_t x, int32_t xr1_, intptr_t p, int32_t ixstp)
 {
     int32_t i;
     if (!trnsrgb)
     {
-        for (; x>xr1; p+=ixstp,x-=3) *(int32_t *)p = (*(int32_t *)&olinbuf[x])|LSWAPIB(0xff000000);
+        for (; x>xr1_; p+=ixstp,x-=3) *(int32_t *)p = (*(int32_t *)&olinbuf[x])|LSWAPIB(0xff000000);
         return;
     }
-    for (; x>xr1; p+=ixstp,x-=3)
+    for (; x>xr1_; p+=ixstp,x-=3)
     {
         i = (*(int32_t *)&olinbuf[x])|LSWAPIB(0xff000000);
         if (i == trnsrgb) i &= LSWAPIB(0xffffff);
@@ -710,9 +710,9 @@ static inline void rgbhlineasm(int32_t x, int32_t xr1, intptr_t p, int32_t ixstp
     }
 }
 
-static inline void pal8hlineasm(int32_t x, int32_t xr1, intptr_t p, int32_t ixstp)
+static inline void pal8hlineasm(int32_t x, int32_t xr1_, intptr_t p, int32_t ixstp)
 {
-    for (; x>xr1; p+=ixstp,x--) *(int32_t *)p = palcol[olinbuf[x]];
+    for (; x>xr1_; p+=ixstp,x--) *(int32_t *)p = palcol[olinbuf[x]];
 }
 
 #endif
@@ -791,16 +791,16 @@ static void putbuf(const uint8_t *buf, int32_t leng)
         //Draw line!
         if ((uint32_t)yplc < (uint32_t)yres)
         {
-            x = xr0; p = nfplace;
+            x = xr0_; p = nfplace;
             switch (coltype)
             {
-            case 2: rgbhlineasm(x,xr1,p,ixstp); break;
+            case 2: rgbhlineasm(x,xr1_,p,ixstp); break;
             case 4:
-                for (; x>xr1; p+=ixstp,x-=2)
+                for (; x>xr1_; p+=ixstp,x-=2)
                     *(int32_t *)p = (palcol[olinbuf[x]]&LSWAPIB(0xffffff))|LSWAPIL((int32_t)olinbuf[x-1]);
                 break;
             case 6:
-                for (; x>xr1; p+=ixstp,x-=4)
+                for (; x>xr1_; p+=ixstp,x-=4)
                 {
                     *(char *)(p) = olinbuf[x  ];   //B
                     *(char *)(p+1) = olinbuf[x+1]; //G
@@ -811,10 +811,10 @@ static void putbuf(const uint8_t *buf, int32_t leng)
             default:
                 switch (bitdepth)
                 {
-                case 1: for (; x>xr1; p+=ixstp,x--) *(int32_t *)p = palcol[olinbuf[x>>3]>>(x&7)]; break;
-                case 2: for (; x>xr1; p+=ixstp,x-=2) *(int32_t *)p = palcol[olinbuf[x>>3]>>(x&6)]; break;
-                case 4: for (; x>xr1; p+=ixstp,x-=4) *(int32_t *)p = palcol[olinbuf[x>>3]>>(x&4)]; break;
-                case 8: pal8hlineasm(x,xr1,p,ixstp); break; //for(;x>xr1;p+=ixstp,x-- ) *(int32_t *)p = palcol[olinbuf[x]]; break;
+                case 1: for (; x>xr1_; p+=ixstp,x--) *(int32_t *)p = palcol[olinbuf[x>>3]>>(x&7)]; break;
+                case 2: for (; x>xr1_; p+=ixstp,x-=2) *(int32_t *)p = palcol[olinbuf[x>>3]>>(x&6)]; break;
+                case 4: for (; x>xr1_; p+=ixstp,x-=4) *(int32_t *)p = palcol[olinbuf[x>>3]>>(x&4)]; break;
+                case 8: pal8hlineasm(x,xr1_,p,ixstp); break; //for(;x>xr1_;p+=ixstp,x-- ) *(int32_t *)p = palcol[olinbuf[x]]; break;
                 }
                 break;
             }

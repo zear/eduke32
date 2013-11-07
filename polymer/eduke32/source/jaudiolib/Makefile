@@ -1,10 +1,11 @@
-CC=gcc
+CC=mipsel-gcw0-linux-uclibc-gcc
+#CC=gcc
 OBJ=obj
 OBJNAME?=libjfaudiolib.a
 PRETTY_OUTPUT?=1
 EROOT?=build
 RELEASE?=1
-OPTLEVEL?=2
+OPTLEVEL?=3
 SRC=src
 
 DXROOT ?= c:/sdks/directx/dx8

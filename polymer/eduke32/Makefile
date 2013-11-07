@@ -13,20 +13,20 @@ DXROOT=../sdk/dx
 
 # Engine options
 SUPERBUILD = 1
-POLYMOST = 1
-POLYMER = 1
-USE_OPENGL = 1
-NOASM = 0
+POLYMOST = 0
+POLYMER = 0
+USE_OPENGL = 0
+NOASM = 1
 LINKED_GTK = 0
 BUILD32_ON_64 = 0
-NEDMALLOC = 1
+NEDMALLOC = 0
 
 # Debugging/Build options
 RELEASE?=1
 DEBUGANYWAY?=0
 KRANDDEBUG?=0
 NOSOUND?=0
-OPTLEVEL?=2
+OPTLEVEL?=3
 PROFILER?=0
 
 ifneq (0,$(KRANDDEBUG))
@@ -71,13 +71,21 @@ JAUDIOLIB=libjfaudiolib.a
 ENETDIR=$(SRC)/enet
 ENETLIB=libenet.a
 
-CC=gcc
-CXX=g++
-AS=nasm
-RC=windres
-STRIP=strip
+CC=mipsel-gcw0-linux-uclibc-gcc
+CXX=mipsel-gcw0-linux-uclibc-g++
+#AS=nasm
+RC=mipsel-gcw0-linux-uclibc-windres
+STRIP=mipsel-gcw0-linux-uclibc-strip
+ARCH=-fstrength-reduce -fthread-jumps -fexpensive-optimizations -fomit-frame-pointer -frename-registers -pipe -G 0 -ffast-math
+#CC=gcc
+#CXX=g++
+#RC=windres
+#STRIP=strip
 
-OURCFLAGS=$(debug) -W -Wall -Wimplicit -Werror-implicit-function-declaration \
+SDLCONFIG=/opt/gcw0-toolchain/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/bin/sdl-config
+SDL_FRAMEWORK=/opt/gcw0-toolchain/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/include/
+
+OURCFLAGS=$(debug) -W -Wall -Wimplicit \
     -funsigned-char -fno-strict-aliasing -DNO_GCC_BUILTINS \
     -I$(INC) -I$(EINC) -I$(SRC)/jmact -I$(JAUDIOLIBDIR)/include -I$(ENETDIR)/include -D_FORTIFY_SOURCE=2 \
     $(F_JUMP_TABLES) $(ARCH)

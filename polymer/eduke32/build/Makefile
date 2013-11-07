@@ -20,13 +20,13 @@ PRETTY_OUTPUT = 1
 #
 
 SUPERBUILD ?= 1
-POLYMOST ?= 1		
-POLYMER ?= 1
-USE_OPENGL ?= 1
-NOASM ?= 0
+POLYMOST ?= 0		
+POLYMER ?= 0
+USE_OPENGL ?= 0
+NOASM ?= 1
 LINKED_GTK ?= 0
 BUILD32_ON_64 ?= 0
-NEDMALLOC ?= 1
+NEDMALLOC ?= 0
 
 ifeq (0,$(USE_OPENGL))
     POLYMER = 0
@@ -41,7 +41,7 @@ RELEASE?=1
 DEBUGANYWAY?=0
 KRANDDEBUG?=0
 EFENCE?=0
-OPTLEVEL?=2
+OPTLEVEL?=3
 PROFILER?=0
 
 ifneq (0,$(KRANDDEBUG))
@@ -94,14 +94,20 @@ ifneq (0,$(DEBUGANYWAY))
     debug+=-ggdb
 endif
 
-CC=gcc
-CXX=gcc
-AS=nasm
-RC=windres
-AR=ar
-RANLIB=ranlib
+CC=mipsel-gcw0-linux-uclibc-gcc
+CXX=mipsel-gcw0-linux-uclibc-g++
+#AS=nasm
+RC=mipsel-gcw0-linux-uclibc-windres
+AR=mipsel-gcw0-linux-uclibc-ar
+RANLIB=mipsel-gcw0-linux-uclibc-ranlib
+ARCH=-fstrength-reduce -fthread-jumps -fexpensive-optimizations -fomit-frame-pointer -frename-registers -pipe -G 0 -ffast-math
+#CC=gcc
+#CXX=g++
+#RC=windres
+#AR=ar
+#RANLIB=ranlib
 
-OURCFLAGS=$(debug) -W -Wall -Wimplicit -Werror-implicit-function-declaration \
+OURCFLAGS=$(debug) -W -Wall -Wimplicit \
 	-Wno-char-subscripts -funsigned-char -fno-strict-aliasing -DNO_GCC_BUILTINS \
 	-DKSFORBUILD -I$(INC) -D_FORTIFY_SOURCE=2 \
     $(F_JUMP_TABLES) $(ARCH)

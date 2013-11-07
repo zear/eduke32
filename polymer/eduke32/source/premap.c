@@ -1602,9 +1602,9 @@ void G_FadeLoad(int32_t r, int32_t g, int32_t b, int32_t start, int32_t end, int
     {
         for (; start < end; start += step)
         {
-            if (KB_KeyPressed(sc_Space))
+            if (KB_KeyPressed(sc_LeftControl))
             {
-                KB_ClearKeyDown(sc_Space);
+                KB_ClearKeyDown(sc_LeftControl);
                 return;
             }
             G_FadePalette(r,g,b,start);
@@ -1615,9 +1615,9 @@ void G_FadeLoad(int32_t r, int32_t g, int32_t b, int32_t start, int32_t end, int
     }
     else for (; start >= end; start += step)
         {
-            if (KB_KeyPressed(sc_Space))
+            if (KB_KeyPressed(sc_LeftControl))
             {
-                KB_ClearKeyDown(sc_Space);
+                KB_ClearKeyDown(sc_LeftControl);
                 return;
             }
             G_FadePalette(r,g,b,start);
