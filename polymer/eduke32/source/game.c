@@ -3368,7 +3368,7 @@ void G_DrawRooms(int32_t snum, int32_t smoothratio)
     ud.camerasect = p->cursectnum;
 
     G_DoInterpolations(smoothratio);
-    //G_AnimateCamSprite(); /* Camera sprite disabled for Dingoo A320 platform performance increase */
+    G_AnimateCamSprite(); /* Comment out to disable camera sprite for framerate increase (useful for Dingoo A320). */
 
     if (ud.camerasprite >= 0)
     {
